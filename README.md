@@ -110,7 +110,7 @@ clean:
 
 ```bash
 make
-qemu-system-i386 -fda mini-os.img
+qemu-system-i386 -fda build/mini-os.img
 ```
 
 You should see:
