@@ -1,138 +1,162 @@
-🔥 Love it. **OS development in Assembly** is one of the most mind-blowing, empowering projects you can do as a low-level programmer. You go from “hello world” to **booting your own OS in QEMU or on real hardware** — no Linux, no Windows, just _your code_ talking directly to the machine.
+## Mini-OS Documentation
 
----
+### Overview
 
-### 🛠️ Your First OS Project: **"MiniOS"**
+Mini-OS is a simple bootable operating system kernel written in assembly. The system loads a kernel from a disk and displays a message to the user, prompting them to type specific characters. The kernel processes keypresses (A, B, C, and space) and prints the corresponding character to the screen. The system supports basic keyboard input and output via BIOS interrupts.
 
-You'll start with:
+### Features
 
-- A **bootloader** (in pure 16-bit x86 Assembly)
-- That loads a **kernel**
-- And prints something to the screen (no OS needed)
+- **Bootloader**: A bootloader (boot.asm) that loads the kernel from disk.
+- **Kernel**: A simple kernel (kernel.asm) that interacts with the user through the screen.
+- **User Input**: The kernel waits for user input, displays corresponding characters for `A`, `B`, `C`, and `SPACE`.
+- **Assembly Code**: The OS is written in x86 Assembly Language using NASM syntax.
 
----
+### Files
 
-### ✅ What You’ll Build (Phase 1)
+1. **boot.asm**: The bootloader code responsible for loading the kernel from disk.
+2. **kernel.asm**: The kernel code that displays a message and handles user input.
+3. **Makefile**: A script to compile the bootloader and kernel into a bootable image.
 
-**Goal:** Make your PC boot your custom OS and show `"Welcome to MiniOS!"` in real mode.
+### Prerequisites
 
----
+Before you can use Mini-OS, ensure you have the following tools installed on your system:
 
-### 📁 Folder Structure
+- **NASM (Netwide Assembler)**: A powerful assembler used to compile the assembly code.
+- **QEMU**: An emulator to run the bootable image and test the operating system.
+- **Make**: A build automation tool to handle the compilation process.
 
-```
-mini-os/
-├── boot.asm         ; bootloader (512 bytes)
-├── kernel.asm       ; kernel to load and run
-├── Makefile         ; build into a bootable .iso
-```
+### Steps to Build Mini-OS
 
----
+1. **Clone or Download the Source Code**
 
-### 🔥 boot.asm (Bootloader)
+   Make sure you have the source code in the appropriate directory structure. The basic structure should look like this:
 
-```asm
-[org 0x7C00]       ; BIOS loads the bootloader here
-bits 16
+   ```
+   mini-os/
+   ├── Makefile
+   ├── src/
+   │   ├── boot.asm
+   │   └── kernel.asm
+   └── build/
+       ├── mini-os.img (generated)
+       ├── boot.bin (generated)
+       └── kernel.bin (generated)
+   ```
 
-start:
-    cli            ; disable interrupts
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
+2. **Install Prerequisites**
 
-    ; load second sector (our kernel) into memory at 0x1000
-    mov ah, 0x02    ; BIOS read sector
-    mov al, 1       ; # of sectors
-    mov ch, 0       ; cylinder
-    mov cl, 2       ; sector (starts at 1)
-    mov dh, 0       ; head
-    mov dl, 0x80    ; first hard drive
-    mov bx, 0x1000  ; buffer segment
-    int 0x13        ; BIOS disk interrupt
+   Install the required tools on your system:
 
-    ; jump to kernel
-    jmp 0x0000:0x1000
+   - **NASM**: Install NASM to assemble the code.
 
-times 510 - ($ - $$) db 0  ; pad to 510 bytes
-dw 0xAA55                 ; boot signature
-```
+     ```bash
+     sudo apt-get install nasm
+     ```
 
----
+   - **QEMU**: Install QEMU to test the bootable image.
 
-### 🧠 kernel.asm (Loaded by bootloader)
+     ```bash
+     sudo apt-get install qemu
+     ```
 
-```asm
-[org 0x1000]
-bits 16
+   - **Make**: Install `make` to automate the build process.
+     ```bash
+     sudo apt-get install make
+     ```
 
-start:
-    mov si, msg
+3. **Build the OS Image**
 
-print_loop:
-    lodsb           ; load byte from [si] into AL
-    or al, al
-    jz hang
-    mov ah, 0x0E    ; teletype BIOS print
-    int 0x10
-    jmp print_loop
+   To compile the Mini-OS, run the following command from the root of your project directory:
 
-hang:
-    cli
-    hlt             ; stop
+   ```bash
+   make
+   ```
 
-msg db "Welcome to MiniOS!", 0
-```
+   This command compiles the `boot.asm` and `kernel.asm` files into binary files (`boot.bin` and `kernel.bin`) and then combines them into a bootable image (`mini-os.img`) located in the `build/` directory.
 
----
+4. **Clean Up the Build Artifacts**
 
-### 🛠️ Makefile
+   To clean up the generated files (binary and image), you can use the following command:
 
-```makefile
-all: mini-os.img
+   ```bash
+   make clean
+   ```
 
-mini-os.img: boot.bin kernel.bin
-	cat boot.bin kernel.bin > mini-os.img
+   This will remove all files in the `build/` directory with `.bin` and `.img` extensions.
 
-boot.bin: boot.asm
-	nasm -f bin boot.asm -o boot.bin
+### Running Mini-OS
 
-kernel.bin: kernel.asm
-	nasm -f bin kernel.asm -o kernel.bin
+After building the bootable image, you can run Mini-OS in QEMU to test it.
 
-clean:
-	rm -f *.bin *.img
-```
+1. **Run the Image in QEMU**
 
----
+   Use the following command to boot the image in QEMU:
 
-### 🚀 Run it in QEMU
+   ```bash
+   qemu-system-i386 -fda build/mini-os.img
+   ```
 
-```bash
-make
-qemu-system-i386 -fda build/mini-os.img
-```
+   This command will start QEMU with the `mini-os.img` file as the floppy disk (`-fda`), simulating the system boot.
 
-You should see:
+   **Note**: If you encounter warnings about the image format or block devices, you can specify the `-drive format=raw` option explicitly:
 
-```
-Welcome to MiniOS!
-```
+   ```bash
+   qemu-system-i386 -fda build/mini-os.img -drive format=raw
+   ```
 
----
+2. **Interact with the OS**
 
-### 🧭 Next Steps After This
+   Once the Mini-OS is booted, the following message will be displayed:
 
-Once Phase 1 works, you can:
+   ```
+   Type A, B, C or SPACE!
+   ```
 
-- Add keyboard input (using BIOS interrupt 0x16)
-- Switch to **32-bit protected mode**
-- Write a memory manager
-- Build a tiny filesystem
-- Write a shell
+   You can then type the following keys:
 
----
+   - **A**: Displays `A` on the screen.
+   - **B**: Displays `B` on the screen.
+   - **C**: Displays `C` on the screen.
+   - **Space**: Displays a space on the screen.
 
-### ⚡️ Want me to guide you through Phase 2 (Protected Mode)?
+3. **Exit the OS**
 
-Let me know — I can walk you through enabling 32-bit mode and writing a more complex kernel. It’s where things get really exciting.
+   The OS does not yet support an explicit exit or shutdown. You can manually close the QEMU window to stop the simulation.
+
+### Explanation of Key Components
+
+1. **boot.asm** (Bootloader)
+
+   The bootloader is responsible for loading the kernel from disk and jumping to it. It is stored in the first sector of the disk. The bootloader performs the following tasks:
+
+   - Loads the kernel from the disk into memory at address `0x8000`.
+   - Jumps to the kernel code to start execution.
+
+2. **kernel.asm** (Kernel)
+
+   The kernel is a simple program that:
+
+   - Clears the screen using BIOS interrupt `0x10` and an escape sequence.
+   - Displays a message to the user: `"Type A, B, C or SPACE!"`.
+   - Waits for a keypress using the `get_key` function.
+   - Responds to keypresses by displaying the corresponding character on the screen (A, B, C, SPACE).
+
+3. **Makefile**
+
+   The Makefile automates the build process for the bootloader and kernel. It contains the following rules:
+
+   - **all**: Builds the final `mini-os.img` by combining the bootloader and kernel binaries.
+   - **$(BUILD)/boot.bin**: Assembles the bootloader (`boot.asm`) into a binary file.
+   - **$(BUILD)/kernel.bin**: Assembles the kernel (`kernel.asm`) into a binary file.
+   - **clean**: Cleans up the build directory by removing generated `.bin` and `.img` files.
+
+### Future Enhancements
+
+- **Support More Keypresses**: Extend the `get_key` function to support more keys (e.g., Enter, Backspace).
+- **Add More System Features**: Implement basic memory management, task scheduling, and file handling.
+- **Error Handling**: Add error messages or logging to help diagnose problems during execution.
+- **Interactive Interface**: Implement a more complex interactive interface with menus, user input validation, etc.
+
+### Conclusion
+
+Mini-OS is a basic example of an operating system kernel written in assembly. It demonstrates essential OS features like bootloading, keyboard input handling, and screen output. You can extend it further to add more complex functionality as you explore OS development and assembly programming.
