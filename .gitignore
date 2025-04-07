@@ -1,0 +1,49 @@
+# Ignore the build directory and all its contents
+/build/
+
+# Ignore all files
+*
+
+# Ignore all .o files in any directory
+*.o
+
+# Unignore all files with extensions
+!*.*
+
+# Unignore all directories (to keep the structure)
+!*/
+
+# Ignore files with extension `.class`, `.exe`, and `.swp`
+*.class
+*.exe
+*.s.swp
+
+# Ignore bin directory (both top-level and nested)
+bin/
+*/bin/*
+
+# Unignore all `.exe` files in any `bin` directory
+!*/bin/*.exe
+
+# Eclipse project files (keep them out of your repo)
+.cproject
+.dep/
+.project
+.settings/
+
+# Files being edited (e.g., backup files)
+*~
+
+# Make and build files (keep them excluded from the repo)
+*.lst
+*.o
+*.eep
+*.lss
+*.map
+*.sym
+*.bin
+*.img
+
+# Optionally keep build-related references like .elf or .hex
+# *.elf
+# *.hex

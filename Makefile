@@ -1,13 +1,17 @@
-all: mini-os.img
+ASM=nasm
+SRC=src
+BUILD=build
 
-mini-os.img: boot.bin kernel.bin
-	cat boot.bin kernel.bin > mini-os.img
+all: $(BUILD)/mini-os.img
 
-boot.bin: boot.asm
-	nasm -f bin boot.asm -o boot.bin
+$(BUILD)/mini-os.img: $(BUILD)/boot.bin $(BUILD)/kernel.bin
+	cat $(BUILD)/boot.bin $(BUILD)/kernel.bin > $(BUILD)/mini-os.img
 
-kernel.bin: kernel.asm
-	nasm -f bin kernel.asm -o kernel.bin
+$(BUILD)/boot.bin: $(SRC)/boot.asm
+	$(ASM) -f bin $< -o $@
+
+$(BUILD)/kernel.bin: $(SRC)/kernel.asm
+	$(ASM) -f bin $< -o $@
 
 clean:
-	rm -f *.bin *.img
+	rm -f $(BUILD)/*.bin $(BUILD)/mini-os.img
